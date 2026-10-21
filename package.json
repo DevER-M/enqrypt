@@ -1,0 +1,48 @@
+{
+  "name": "enqrypt",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End-to-end encrypted 1:1 chat using ML-KEM-768, HKDF-SHA256 and AES-256-GCM",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.11",
+    "@neondatabase/serverless": "^1.2.0",
+    "@noble/hashes": "^2.4.0",
+    "@noble/post-quantum": "^0.7.1",
+    "@upstash/redis": "^1.39.0",
+    "@vercel/functions": "^3.10.2",
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "^0.45.4",
+    "jose": "^6.2.13",
+    "next": "16.4.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "ws": "^8.22.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/ws": "^8.18.2",
+    "drizzle-kit": "^0.31.11",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
