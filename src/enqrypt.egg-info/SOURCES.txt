@@ -1,0 +1,12 @@
+README.md
+pyproject.toml
+src/enqrypt/__init__.py
+src/enqrypt/__main__.py
+src/enqrypt/chat.py
+src/enqrypt/cli.py
+src/enqrypt.egg-info/PKG-INFO
+src/enqrypt.egg-info/SOURCES.txt
+src/enqrypt.egg-info/dependency_links.txt
+src/enqrypt.egg-info/requires.txt
+src/enqrypt.egg-info/top_level.txt
+tests/test.py
