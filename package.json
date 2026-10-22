@@ -1,0 +1,25 @@
+{
+  "name": "enc-web",
+  "private": true,
+  "type": "module",
+  "description": "Browser crypto bundle and tests for the enc chat app",
+  "scripts": {
+    "build:vendor": "esbuild web/src/vendor-entry.js --bundle --format=esm --target=es2022 --minify --outfile=src/enc/web/static/vendor/noble.js",
+    "build:css": "tailwindcss -i web/src/app.css -o src/enc/web/static/app.css --minify",
+    "build": "npm run build:vendor && npm run build:css",
+    "test": "node --test tests/js/*.test.js",
+    "test:browser": "node tests/browser/smoke.mjs",
+    "e2e": "node scripts/e2e.mjs"
+  },
+  "devDependencies": {
+    "@noble/ciphers": "2.4.0",
+    "@noble/curves": "2.4.0",
+    "@noble/hashes": "2.4.0",
+    "@noble/post-quantum": "0.7.1",
+    "@tailwindcss/cli": "4.3.3",
+    "esbuild": "0.28.2",
+    "playwright": "^1.64.1",
+    "tailwindcss": "4.3.3",
+    "ws": "^8.18.0"
+  }
+}

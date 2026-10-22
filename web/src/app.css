@@ -1,0 +1,683 @@
+@import "tailwindcss";
+
+/* Only the markup and the UI scripts carry class names. Scanning the whole
+   web directory would re-read the compiled app.css and the vendor bundle,
+   which resurrects classes from previous builds. */
+@source "../../src/enc/web/index.html";
+@source "../../src/enc/web/static/js";
+
+/* ------------------------------------------------------------------ */
+/* Design tokens: Windows 95 / late-90s web                            */
+/*                                                                     */
+/* Every colour is opaque and at maximum saturation, and every radius  */
+/* is zero. Utilities like bg-surface, text-dim, border-titlebar and   */
+/* font-title are generated from these tokens.                         */
+/* ------------------------------------------------------------------ */
+
+@theme {
+  /* Surfaces and ink */
+  --color-surface: #c0c0c0;
+  --color-gloss: #dfdfdf;
+  --color-ink: #000000;
+  /* --muted is the era's 50% gray: borders, bevels, disabled text, hints. */
+  --color-muted: #808080;
+  --color-paper: #ffffff;
+  --color-row: #e8e8e8;
+  /* --dim is the bevel-shadow gray, reused as readable secondary text.
+     #808080 on silver is only ~2.2:1, so body copy uses this instead. */
+  --color-dim: #404040;
+
+  /* Window chrome and links */
+  --color-titlebar: #000080;
+  --color-titleend: #1084d0;
+  --color-link: #0000ff;
+  --color-link-visited: #800080;
+  --color-link-hover: #ff0000;
+
+  /* Accents and status */
+  --color-notepad: #ffffcc;
+  --color-danger: #ff0000;
+  --color-success: #00aa00;
+  --color-warning: #ffff00;
+  --color-teal: #008080;
+  --color-purple: #800080;
+  --color-green: #008000;
+  --color-blue: #0000ff;
+  --color-maroon: #800000;
+  /* Darkened from #808000 so white initials clear 4.5:1. */
+  --color-olive: #666600;
+
+  /* Type */
+  --font-sans: "MS Sans Serif", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+  --font-title: "Arial Black", Impact, Haettenschweiler, sans-serif;
+
+  /* The 90s had no border-radius */
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  /* The desktop: a tiled silver crosshatch, never flat. */
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-ink);
+    background-color: var(--color-surface);
+    background-image:
+      linear-gradient(45deg, #b8b8b8 25%, transparent 25%),
+      linear-gradient(-45deg, #b8b8b8 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #b8b8b8 75%),
+      linear-gradient(-45deg, transparent 75%, #b8b8b8 75%);
+    background-size: 4px 4px;
+    background-position: 0 0, 0 2px, 2px -2px, -2px 0;
+  }
+
+  a {
+    color: var(--color-link);
+    text-decoration: underline;
+  }
+
+  a:visited {
+    color: var(--color-link-visited);
+  }
+
+  a:hover,
+  a:active {
+    color: var(--color-link-hover);
+  }
+
+  ::selection {
+    color: #ffffff;
+    background: var(--color-titlebar);
+  }
+
+  /* Windows 95 focus ring: dotted, hard-edged, always visible. */
+  :focus-visible {
+    outline: 2px dotted #000000;
+    outline-offset: 1px;
+  }
+}
+
+@layer components {
+  /* ---- 3D bevels (the signature) ---------------------------------- */
+
+  .bevel-out {
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #dfdfdf;
+  }
+
+  .bevel-in {
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
+  }
+
+  /* ---- windows ---------------------------------------------------- */
+
+  .window {
+    padding: 3px;
+    background: var(--color-surface);
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #dfdfdf;
+  }
+
+  .window-title {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 5px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #ffffff;
+    background: linear-gradient(to right, #000080, #1084d0);
+  }
+
+  /* Purely decorative chrome, so it never looks clickable. */
+  .window-controls {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+    pointer-events: none;
+  }
+
+  .window-controls > span {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 14px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #000000;
+    background: var(--color-surface);
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+  }
+
+  .groove {
+    flex: none;
+    height: 2px;
+    border: 0;
+    background: linear-gradient(to bottom, #808080 0 50%, #ffffff 50% 100%);
+  }
+
+  /* ---- listbox: a sunken, table-like panel ------------------------ */
+
+  .listbox {
+    background: var(--color-paper);
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040;
+  }
+
+  /* ---- buttons ---------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-ink);
+    background: var(--color-surface);
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #dfdfdf;
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    background: #d4d4d4;
+  }
+
+  .btn:active:not(:disabled) {
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
+    background: var(--color-surface);
+    transform: translate(1px, 1px);
+  }
+
+  .btn:disabled {
+    color: var(--color-muted);
+    text-shadow: 1px 1px 0 #ffffff;
+    cursor: default;
+  }
+
+  .btn-primary {
+    color: #ffffff;
+    background: var(--color-titlebar);
+    border-color: #6b6bff #000040 #000040 #6b6bff;
+    box-shadow: inset -1px -1px 0 #000040, inset 1px 1px 0 #6b6bff;
+  }
+
+  .btn-primary:hover {
+    background: #0000a0;
+  }
+
+  .btn-primary:active:not(:disabled) {
+    border-color: #000040 #6b6bff #6b6bff #000040;
+    box-shadow: inset 1px 1px 0 #000040, inset -1px -1px 0 #6b6bff;
+    background: var(--color-titlebar);
+  }
+
+  .btn-primary:disabled {
+    color: #b0b0d0;
+    text-shadow: 1px 1px 0 #000040;
+  }
+
+  .icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 26px;
+    padding: 0 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-ink);
+    background: var(--color-surface);
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #dfdfdf;
+    cursor: pointer;
+  }
+
+  .icon-button:hover {
+    background: #d4d4d4;
+  }
+
+  .icon-button:active {
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
+    transform: translate(1px, 1px);
+  }
+
+  .tab {
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-muted);
+    background: var(--color-surface);
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040;
+    cursor: pointer;
+  }
+
+  .tab[aria-selected="true"] {
+    color: var(--color-ink);
+    background: var(--color-paper);
+    border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #dfdfdf;
+  }
+
+  /* ---- form controls ---------------------------------------------- */
+
+  .field {
+    width: 100%;
+    padding: 4px 6px;
+    font-size: 14px;
+    color: var(--color-ink);
+    background: var(--color-paper);
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040;
+  }
+
+  .field::placeholder {
+    color: var(--color-muted);
+  }
+
+  .field:disabled {
+    color: var(--color-muted);
+    background: var(--color-surface);
+  }
+
+  .field-label {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* ---- avatars, presence, badges ---------------------------------- */
+
+  .avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45);
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+  }
+
+  .conn-dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border: 1px solid #000000;
+  }
+
+  .conn-dot[data-state="connecting"] {
+    background: var(--color-warning);
+  }
+
+  .conn-dot[data-state="online"] {
+    background: var(--color-success);
+  }
+
+  .conn-dot[data-state="offline"] {
+    background: var(--color-danger);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: 1px solid #000000;
+  }
+
+  /* Black on #00aa00 (6.7:1) rather than white (3.1:1). */
+  .badge-verified {
+    color: #000000;
+    background: var(--color-success);
+  }
+
+  .badge-warn {
+    color: #000000;
+    background: var(--color-warning);
+  }
+
+  .badge-muted {
+    color: #000000;
+    background: var(--color-surface);
+  }
+
+  .unread {
+    padding: 0 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #000000;
+    background: var(--color-danger);
+    border: 1px solid #000000;
+  }
+
+  /* ---- user list: alternating table rows -------------------------- */
+
+  #user-list > li + li {
+    border-top: 1px solid #808080;
+  }
+
+  #user-list > li:nth-child(odd) {
+    background: var(--color-paper);
+  }
+
+  #user-list > li:nth-child(even) {
+    background: var(--color-row);
+  }
+
+  .user-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 6px;
+    text-align: left;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .user-row:hover {
+    background: #d0d0d0;
+  }
+
+  .user-row[data-active="true"],
+  .user-row[data-active="true"]:hover {
+    color: #ffffff;
+    background: var(--color-titlebar);
+  }
+
+  .user-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: inherit;
+  }
+
+  .user-sub {
+    font-size: 11px;
+    color: var(--color-dim);
+  }
+
+  .user-row[data-active="true"] .user-sub {
+    color: var(--color-gloss);
+  }
+
+  .user-presence {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border: 1px solid #000000;
+  }
+
+  .user-presence[data-online="true"] {
+    background: var(--color-success);
+  }
+
+  .user-presence[data-online="false"] {
+    background: var(--color-muted);
+  }
+
+  /* ---- chat header status ----------------------------------------- */
+
+  /* A status box, so every state is legible on its own fill. */
+  #chat-status {
+    display: inline-block;
+    padding: 0 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #000000;
+    background: var(--color-surface);
+    border: 1px solid #808080;
+  }
+
+  #chat-status:empty {
+    display: none;
+  }
+
+  #chat-status[data-state="secure"] {
+    color: #ffffff;
+    background: var(--color-green);
+    border-color: #004400;
+  }
+
+  #chat-status[data-state="negotiating"] {
+    background: var(--color-warning);
+  }
+
+  /* ---- messages --------------------------------------------------- */
+
+  .msg {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .msg-out {
+    align-items: flex-end;
+  }
+
+  .msg-in {
+    align-items: flex-start;
+  }
+
+  .bubble {
+    max-width: 75%;
+    padding: 5px 8px;
+    font-size: 14px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #dfdfdf;
+  }
+
+  .msg-in .bubble {
+    color: var(--color-ink);
+    background: var(--color-paper);
+  }
+
+  .msg-out .bubble {
+    color: var(--color-ink);
+    background: var(--color-notepad);
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .time {
+    padding: 0 2px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-dim);
+  }
+
+  .ticks-cell {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .ticks {
+    color: var(--color-success);
+  }
+
+  .ticks-sent {
+    color: var(--color-dim);
+  }
+
+  .system {
+    align-self: center;
+    max-width: 85%;
+    margin: 0 auto;
+    padding: 1px 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-align: center;
+    color: var(--color-ink);
+    background: var(--color-surface);
+    border: 1px solid #808080;
+  }
+
+  .system-error {
+    color: #ffffff;
+    background: var(--color-maroon);
+    border-color: #000000;
+  }
+
+  .empty {
+    display: grid;
+    height: 100%;
+    place-content: center;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .empty-icon {
+    font-size: 30px;
+  }
+
+  .empty strong {
+    font-family: var(--font-title);
+    font-size: 20px;
+    text-transform: uppercase;
+  }
+
+  .empty span:last-child {
+    font-size: 12px;
+    color: var(--color-dim);
+  }
+
+  /* ---- overlays and dialogs --------------------------------------- */
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    overflow-y: auto;
+    padding: 16px;
+    background-color: var(--color-surface);
+    background-image:
+      linear-gradient(45deg, #b8b8b8 25%, transparent 25%),
+      linear-gradient(-45deg, #b8b8b8 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #b8b8b8 75%),
+      linear-gradient(-45deg, transparent 75%, #b8b8b8 75%);
+    background-size: 4px 4px;
+    background-position: 0 0, 0 2px, 2px -2px, -2px 0;
+  }
+
+  .dialog {
+    width: 100%;
+    max-width: 520px;
+    margin: auto;
+    padding: 3px 3px 12px;
+    background: var(--color-surface);
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #dfdfdf;
+  }
+
+  .dialog > h2 {
+    margin: 0 0 10px;
+    padding: 3px 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #ffffff;
+    background: linear-gradient(to right, #000080, #1084d0);
+  }
+
+  .dialog > :not(h2) {
+    margin-right: 8px;
+    margin-left: 8px;
+  }
+
+  /* Terminal-styled code blocks: green mono on black. */
+  .code-block {
+    display: block;
+    padding: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.7;
+    letter-spacing: 0.08em;
+    overflow-wrap: anywhere;
+    color: #00ff00;
+    background: #000000;
+    border: 2px solid;
+    border-color: #808080 #ffffff #ffffff #808080;
+    box-shadow: inset 1px 1px 0 #404040;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    z-index: 60;
+    padding: 6px 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-ink);
+    background: var(--color-notepad);
+    border: 2px solid;
+    border-color: #ffffff #808080 #808080 #ffffff;
+    box-shadow: inset -1px -1px 0 #404040, inset 1px 1px 0 #dfdfdf;
+    transform: translateX(-50%);
+  }
+}

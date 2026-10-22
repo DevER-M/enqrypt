@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="light" />
+    <title>enc</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23c0c0c0'/%3E%3Crect x='2' y='2' width='12' height='12' fill='%23000080'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body class="h-full">
+    <!-- ---------------- sign in / register ---------------- -->
+    <div id="auth-screen" class="fixed inset-0 z-30 grid place-items-center overflow-y-auto p-4">
+      <div class="window w-full max-w-sm">
+        <div class="window-title">
+          <span aria-hidden="true">▣</span>
+          <span>enc.exe</span>
+          <span class="window-controls" aria-hidden="true">
+            <span>_</span><span>□</span><span>✕</span>
+          </span>
+        </div>
+
+        <div class="p-3">
+          <div class="mb-3 flex items-start gap-3">
+            <span
+              class="avatar bg-titlebar text-base"
+              aria-hidden="true"
+            >
+              ◈
+            </span>
+            <div>
+              <h1 class="font-title text-lg uppercase leading-none tracking-tight">enc</h1>
+              <p class="mt-1 text-xs text-dim">post-quantum encrypted chat</p>
+            </div>
+          </div>
+
+          <div class="mb-4 grid grid-cols-2 gap-1">
+            <button id="tab-login" class="tab" type="button" aria-selected="true">
+              Sign in
+            </button>
+            <button id="tab-register" class="tab" type="button" aria-selected="false">
+              Create account
+            </button>
+          </div>
+
+          <form id="auth-form" class="space-y-3" autocomplete="on">
+            <div>
+              <label class="field-label" for="auth-username">Username</label>
+              <input
+                id="auth-username"
+                name="username"
+                class="field"
+                maxlength="32"
+                pattern="[A-Za-z0-9_.\-]{3,32}"
+                autocomplete="username"
+                spellcheck="false"
+                required
+              />
+            </div>
+            <div>
+              <label class="field-label" for="auth-password">Password</label>
+              <input
+                id="auth-password"
+                name="password"
+                type="password"
+                class="field"
+                minlength="8"
+                maxlength="128"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+            <div id="confirm-field" hidden>
+              <label class="field-label" for="auth-confirm">Confirm password</label>
+              <input
+                id="auth-confirm"
+                type="password"
+                class="field"
+                minlength="8"
+                maxlength="128"
+                autocomplete="new-password"
+              />
+            </div>
+            <button id="auth-submit" class="btn btn-primary w-full" type="submit">
+              Sign in
+            </button>
+            <p id="auth-error" class="text-xs font-bold text-maroon" hidden></p>
+          </form>
+
+          <div class="groove mt-4"></div>
+          <p class="mt-3 text-[11px] leading-relaxed text-dim">
+            Your identity key is generated in this browser and never leaves it. Messages
+            are encrypted with X25519 + ML-KEM-768 before the server ever sees them.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------------- app ---------------- -->
+    <div
+      id="app"
+      class="window mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden md:my-4 md:h-[calc(100dvh-2rem)]"
+      hidden
+    >
+      <div class="window-title">
+        <span aria-hidden="true">▣</span>
+        <span>enc — post-quantum chat</span>
+        <span class="window-controls" aria-hidden="true">
+          <span>_</span><span>□</span><span>✕</span>
+        </span>
+      </div>
+
+      <div class="flex min-h-0 flex-1">
+        <aside
+          id="sidebar"
+          class="flex w-full min-w-0 flex-col md:w-80 md:shrink-0 md:border-r-2 md:border-[#808080]"
+        >
+          <div class="flex items-center gap-2 p-2">
+            <span id="me-avatar" class="avatar"></span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span id="me-name" class="truncate text-sm font-bold">—</span>
+                <span
+                  id="conn-dot"
+                  class="conn-dot"
+                  data-state="connecting"
+                  title="connecting"
+                ></span>
+              </div>
+              <div id="conn-label" class="truncate text-xs text-dim">connecting…</div>
+            </div>
+            <button id="identity-button" class="icon-button" type="button" title="Your identity">
+              ID
+            </button>
+            <button id="logout-button" class="icon-button" type="button" title="Sign out">
+              ⏻
+            </button>
+          </div>
+
+          <div class="groove"></div>
+
+          <div class="p-2">
+            <input
+              id="user-search"
+              class="field"
+              placeholder="Search people…"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+
+          <ul
+            id="user-list"
+            class="listbox mx-2 mb-2 min-h-0 flex-1 overflow-y-auto"
+          ></ul>
+
+          <div class="groove"></div>
+
+          <p class="p-2 text-[11px] leading-relaxed text-dim">
+            The server stores accounts and routes frames. It never sees your private keys
+            or your plaintext.
+          </p>
+        </aside>
+
+        <section id="chat" class="flex min-w-0 flex-1 flex-col max-md:hidden">
+          <header class="flex items-center gap-2 p-2">
+            <button id="chat-back" class="icon-button md:hidden" type="button" title="Back">
+              ←
+            </button>
+            <span id="chat-avatar" class="avatar"></span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span id="chat-peer" class="truncate font-title text-sm uppercase">
+                  No conversation
+                </span>
+                <span id="verify-badge" class="badge" hidden></span>
+              </div>
+              <div id="chat-status" data-state="idle"></div>
+            </div>
+            <button id="verify-button" class="btn btn-ghost" type="button" hidden>
+              Verify
+            </button>
+            <button id="retry-session" class="btn btn-ghost" type="button" hidden>
+              Restart
+            </button>
+          </header>
+
+          <div class="groove"></div>
+
+          <main
+            id="messages"
+            class="min-h-0 flex-1 space-y-2 overflow-y-auto bg-paper p-3"
+            aria-live="polite"
+          ></main>
+
+          <div id="typing" class="px-3 py-1 text-xs italic text-dim" hidden></div>
+
+          <div class="groove"></div>
+
+          <form id="composer" class="flex items-end gap-2 p-2">
+            <textarea
+              id="input"
+              rows="1"
+              class="field resize-none"
+              placeholder="Select someone to start"
+              autocomplete="off"
+            ></textarea>
+            <button id="send-button" class="btn btn-primary h-10" type="submit" disabled>
+              Send
+            </button>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <!-- ---------------- identity panel ---------------- -->
+    <div id="identity-panel" class="overlay" hidden>
+      <div class="dialog">
+        <h2 id="identity-title">Your identity</h2>
+        <p id="identity-help" class="text-xs leading-relaxed text-dim">
+          This key pair proves your account is you. Keep the backup private: anyone who
+          has it can impersonate you.
+        </p>
+
+        <div id="identity-current" class="mt-3 space-y-2" hidden>
+          <div class="field-label">Fingerprint</div>
+          <code id="identity-fingerprint" class="code-block"></code>
+          <div class="field-label">Backup key</div>
+          <textarea
+            id="identity-export"
+            class="field h-20 resize-none font-mono text-xs"
+            readonly
+          ></textarea>
+          <button id="identity-copy" class="btn btn-ghost" type="button">
+            Copy backup key
+          </button>
+        </div>
+
+        <div class="mt-3 space-y-2">
+          <label class="field-label" for="identity-import">Import a backup key</label>
+          <textarea
+            id="identity-import"
+            class="field h-20 resize-none font-mono text-xs"
+            placeholder="Paste an exported identity key"
+            spellcheck="false"
+          ></textarea>
+          <div class="flex flex-wrap gap-2">
+            <button id="identity-import-button" class="btn btn-ghost" type="button">
+              Use this key
+            </button>
+            <button id="identity-create" class="btn btn-ghost" type="button" hidden>
+              Create a new identity
+            </button>
+            <button id="identity-adopt" class="btn btn-primary" type="button" hidden>
+              Use this browser's key
+            </button>
+          </div>
+        </div>
+
+        <p id="identity-message" class="mt-3 text-xs font-bold text-maroon" hidden></p>
+
+        <div class="mt-4 flex justify-end">
+          <button id="identity-close" class="btn btn-primary" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------------- verify panel ---------------- -->
+    <div id="verify-panel" class="overlay" hidden>
+      <div class="dialog">
+        <h2>Verify <span id="verify-peer"></span></h2>
+        <p id="verify-state" class="text-xs text-dim"></p>
+        <code id="verify-code" class="code-block mt-3"></code>
+        <p class="mt-3 text-xs leading-relaxed text-dim">
+          Compare this number with your contact over a call or in person. It is derived
+          from both identity keys, so it stays the same for every session unless a key
+          changes.
+        </p>
+        <p id="verify-warning" class="mt-3 text-xs font-bold text-maroon" hidden></p>
+        <div class="mt-4 flex justify-between gap-2">
+          <button id="verify-mark" class="btn btn-primary" type="button">
+            Mark as verified
+          </button>
+          <button id="verify-close" class="btn btn-ghost" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <noscript>
+      <p class="p-4">enc needs JavaScript to run its encryption in your browser.</p>
+    </noscript>
+
+    <script type="module" src="/static/js/main.js"></script>
+  </body>
+</html>
